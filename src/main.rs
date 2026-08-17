@@ -10,8 +10,8 @@ struct Grid {
 
 impl Grid {
     fn new(size: (u16, u16)) -> Self {
-        let rows = size.1 as usize;
-        let cols = size.0 as usize;
+        let rows = size.0 as usize;
+        let cols = size.1 as usize;
 
         Self {
             rows,
@@ -49,11 +49,7 @@ impl Grid {
             panic!("Index out of bounds.");
         }
 
-        if self.buffer[row * self.cols + col] == '█' {
-            return true;
-        }
-
-        false
+        self.buffer[row * self.cols + col] == '█'
     }
 
     fn set_cell_state(&mut self, row: usize, col: usize, c: char) {
@@ -66,22 +62,22 @@ impl Grid {
 }
 
 struct Game {
-    game: Grid,
+    grid: Grid,
     birth: [bool; 9],
     survival: [bool; 9],
 }
 
 impl Game {
-    fn new(game: Grid, rulestring: Option<String>) -> Option<Self> {
+    fn new(grid: Grid, rulestring: Option<&str>) -> Option<Self> {
         let rule = match rulestring {
             Some(rule) => rule,
-            None => "B3/S23".to_string(),
+            None => "B3/S23",
         };
 
-        let (birth, survival) = Self::parse_rulestring(&rule)?;
+        let (birth, survival) = Self::parse_rulestring(rule)?;
 
         Some(Self {
-            game,
+            grid,
             birth,
             survival,
         })
@@ -118,19 +114,19 @@ impl Game {
     }
 
     fn next_cell_state(&self, row: usize, col: usize) -> bool {
-        let curr_state = self.game.get_cell_state(row, col);
+        let curr_state = self.grid.get_cell_state(row, col);
         let mut live_neighbors: usize = 0;
 
-        for r in (row - 1)..=(row + 1) {
-            for c in (col - 1)..=(col + 1) {
-                if !(0..self.game.rows).contains(&r) || !(0..self.game.cols).contains(&c) {
+        for r in row.saturating_sub(1)..=row.saturating_add(1) {
+            for c in col.saturating_sub(1)..=col.saturating_add(1) {
+                if r >= self.grid.rows || c >= self.grid.cols {
                     continue;
                 }
                 if r == row && c == col {
                     continue;
                 }
 
-                if self.game.get_cell_state(r, c) {
+                if self.grid.get_cell_state(r, c) {
                     live_neighbors += 1;
                 }
             }
@@ -149,11 +145,14 @@ impl Game {
         false
     }
 
-    fn tick(&self) -> Grid {
-        let mut next_grid = Grid::new((self.game.rows as u16, self.game.cols as u16));
+    fn tick(&mut self) {
+        let rows = self.grid.rows;
+        let cols = self.grid.cols;
 
-        for row in 0..self.game.rows {
-            for col in 0..self.game.cols {
+        let mut next_grid = Grid::new((rows as u16, cols as u16));
+
+        for row in 0..rows {
+            for col in 0..cols {
                 if Self::next_cell_state(&self, row, col) {
                     next_grid.set_cell_state(row, col, '█');
                 } else {
@@ -162,19 +161,25 @@ impl Game {
             }
         }
 
-        next_grid
+        self.grid = next_grid;
     }
 }
 
-fn render(grid: &Grid) -> io::Result<()> {
-    let mut output = String::with_capacity(grid.rows * (grid.cols + 1));
+fn render(game: &Game) -> io::Result<()> {
+    let rows = game.grid.rows;
+    let cols = game.grid.cols;
 
-    for row in 0..grid.rows {
-        let start = row * grid.cols;
-        let end = start + grid.cols;
+    let mut output = String::with_capacity(rows * (cols + 1));
 
-        output.extend(grid.buffer[start..end].iter());
-        output.push('\n');
+    for row in 0..rows {
+        let start = row * cols;
+        let end = start + cols;
+
+        output.extend(game.grid.buffer[start..end].iter());
+
+        if row < rows - 1 {
+            output.push('\n');
+        }
     }
 
     execute!(io::stdout(), cursor::MoveTo(0, 0), style::Print(output))
@@ -182,23 +187,37 @@ fn render(grid: &Grid) -> io::Result<()> {
 
 fn main() -> io::Result<()> {
     let size: (u16, u16) = terminal::size().expect("Error in fetching terminal size.");
-    let grid = Grid::new_random(size, 0.5, Some(0));
+
+    let grid = Grid::new_random((size.0, size.1), 0.5, Some(0));
+    let mut game = Game::new(grid, None).ok_or("err").expect("err");
+
+    let game_speed = 15.0;
+    let frame_duration = std::time::Duration::from_secs_f64(1.0 / game_speed);
 
     terminal::enable_raw_mode()?;
     execute!(io::stdout(), terminal::EnterAlternateScreen, cursor::Hide)?;
 
-    render(&grid)?;
-
     loop {
-        if let event::Event::Key(k) = event::read()? {
-            if k.kind == event::KeyEventKind::Press
-                && matches!(k.code, event::KeyCode::Char('q') | event::KeyCode::Esc)
-            {
-                break;
+        let frame_start = std::time::Instant::now();
+
+        render(&game)?;
+        game.tick();
+
+        if event::poll(std::time::Duration::ZERO)? {
+            if let event::Event::Key(k) = event::read()? {
+                if k.kind == event::KeyEventKind::Press
+                    && matches!(k.code, event::KeyCode::Char('q') | event::KeyCode::Esc)
+                {
+                    break;
+                }
             }
         }
-    }
 
+        let elapsed = frame_start.elapsed();
+        if elapsed < frame_duration {
+            std::thread::sleep(frame_duration - elapsed);
+        }
+    }
     execute!(io::stdout(), terminal::LeaveAlternateScreen, cursor::Show)?;
     terminal::disable_raw_mode()?;
 
