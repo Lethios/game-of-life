@@ -75,14 +75,12 @@ impl Game {
             }
         }
 
-        if curr_state {
-            if self.survival[live_neighbors] {
-                return true;
-            }
-        } else {
-            if self.birth[live_neighbors] {
-                return true;
-            }
+        if curr_state && self.survival[live_neighbors] {
+            return true;
+        }
+
+        if !curr_state && self.birth[live_neighbors] {
+            return true;
         }
 
         false
@@ -92,7 +90,7 @@ impl Game {
         let rows = self.grid.rows();
         let cols = self.grid.cols();
 
-        let mut next_grid = Grid::new((rows as u16, cols as u16));
+        let mut next_grid = Grid::new((cols as u16, rows as u16));
 
         for row in 0..rows {
             for col in 0..cols {

@@ -1,5 +1,4 @@
 use crossterm::{cursor, event, execute, style, terminal};
-use rand::{self, RngExt, rngs::StdRng};
 use std::io;
 
 mod game;

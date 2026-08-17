@@ -8,8 +8,8 @@ pub struct Grid {
 
 impl Grid {
     pub fn new(size: (u16, u16)) -> Self {
-        let rows = size.0 as usize;
-        let cols = size.1 as usize;
+        let rows = size.1 as usize;
+        let cols = size.0 as usize;
 
         Self {
             rows,
@@ -50,7 +50,7 @@ impl Grid {
         self.cols
     }
 
-    pub fn buffer(&self) -> &Vec<char> {
+    pub fn buffer(&self) -> &[char] {
         &self.buffer
     }
 
