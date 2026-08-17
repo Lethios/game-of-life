@@ -76,7 +76,15 @@ fn main() -> io::Result<()> {
 
     display(grid.render_to_string())?;
 
-    while !matches!(event::read()?, event::Event::Key(_)) {}
+    loop {
+        if let event::Event::Key(k) = event::read()? {
+            if k.kind == event::KeyEventKind::Press
+                && matches!(k.code, event::KeyCode::Char('q') | event::KeyCode::Esc)
+            {
+                break;
+            }
+        }
+    }
 
     execute!(io::stdout(), terminal::LeaveAlternateScreen, cursor::Show)?;
     terminal::disable_raw_mode()?;
