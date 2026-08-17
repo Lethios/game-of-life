@@ -1,9 +1,9 @@
-use crossterm::cursor::{MoveTo, MoveToNextLine};
+use crossterm::cursor;
 use crossterm::event;
-use crossterm::style::Print;
-use crossterm::terminal::{EnterAlternateScreen, LeaveAlternateScreen};
+use crossterm::style;
 use crossterm::{execute, terminal};
 use std::io;
+use std::io::Write;
 
 struct Grid {
     rows: usize,
@@ -38,25 +38,48 @@ impl Grid {
 
         self.buffer[row * self.cols + col] = c;
     }
+
+    fn render_to_string(&self) -> String {
+        let mut output = String::with_capacity(self.rows * (self.cols + 1));
+
+        for row in 0..self.rows {
+            let start = row * self.cols;
+            let end = start + self.cols;
+
+            output.extend(self.buffer[start..end].iter());
+            output.push('\n');
+        }
+
+        output
+    }
 }
 
-fn display(grid: &Grid) -> io::Result<()> {
-    execute!(io::stdout(), MoveTo(0, 0))?;
-
-    for row in 0..grid.rows {
-        for col in 0..grid.cols {
-            execute!(io::stdout(), Print(grid.buffer[row * grid.cols + col]))?;
-        }
-        execute!(io::stdout(), MoveToNextLine(1))?;
-    }
-
-    Ok(())
+fn display(output: String) -> io::Result<()> {
+    execute!(io::stdout(), cursor::MoveTo(0, 0), style::Print(output))?;
+    io::stdout().flush()
 }
 
 fn main() -> io::Result<()> {
     let size: (u16, u16) = terminal::size().expect("Error in fetching terminal size.");
-
     let mut grid = Grid::new(size);
+
+    terminal::enable_raw_mode()?;
+    execute!(io::stdout(), terminal::EnterAlternateScreen, cursor::Hide)?;
+
+    for i in 0..grid.cols {
+        if i >= grid.rows {
+            break;
+        }
+
+        grid.set_char(i, i, '█');
+    }
+
+    display(grid.render_to_string())?;
+
+    while !matches!(event::read()?, event::Event::Key(_)) {}
+
+    execute!(io::stdout(), terminal::LeaveAlternateScreen, cursor::Show)?;
+    terminal::disable_raw_mode()?;
 
     Ok(())
 }
