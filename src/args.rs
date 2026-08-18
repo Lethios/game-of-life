@@ -14,7 +14,7 @@ pub fn parse_args() -> Result<Args, String> {
             [false, false, false, true, false, false, false, false, false],
             [false, false, true, true, false, false, false, false, false],
         ),
-        speed: 10.0,
+        speed: 12.0,
         spawn: 0.5,
     };
 
@@ -28,7 +28,7 @@ pub fn parse_args() -> Result<Args, String> {
             "--rulestring" => parsed_args.rulestring = validate_rulestring(&value)?,
             "--speed" => parsed_args.speed = validate_speed(&value)?,
             "--spawn" => parsed_args.spawn = validate_spawn(&value)?,
-            _ => return Err(format!("Invalid flag: {value}")),
+            _ => return Err(format!("Invalid flag: {flag}")),
         }
     }
 
@@ -40,7 +40,7 @@ fn validate_seed(seed: &str) -> Result<u64, String> {
         .map_err(|_| format!("Invalid seed: {seed} is not a valid u64"))
 }
 
-fn parse_rulestring(rulestring: &str) -> Result<([bool; 9], [bool; 9]), String> {
+fn validate_rulestring(rulestring: &str) -> Result<([bool; 9], [bool; 9]), String> {
     let mut birth_rules = [false; 9];
     let mut survival_rules = [false; 9];
 
@@ -80,10 +80,6 @@ fn parse_rulestring(rulestring: &str) -> Result<([bool; 9], [bool; 9]), String> 
     }
 
     Ok((birth_rules, survival_rules))
-}
-
-fn validate_rulestring(rulestring: &str) -> Result<([bool; 9], [bool; 9]), String> {
-    parse_rulestring(rulestring)
 }
 
 fn validate_speed(speed: &str) -> Result<f64, String> {
