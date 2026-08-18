@@ -8,7 +8,7 @@ pub struct Args {
 pub fn parse_args() -> Result<Args, String> {
     let mut args = std::env::args().skip(1);
     let mut parsed_args = Args {
-        // Set default arguments
+        // Set default arguments values
         seed: rand::random::<u64>(),
         rulestring: (
             [false, false, false, true, false, false, false, false, false],

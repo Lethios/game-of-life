@@ -8,9 +8,9 @@ pub struct Grid {
 
 impl Grid {
     // Construct Grid with empty buffer
-    pub fn new(size: (u16, u16)) -> Self {
-        let rows = size.1 as usize;
-        let cols = size.0 as usize;
+    pub fn new(rows: u16, cols: u16) -> Self {
+        let rows = rows as usize;
+        let cols = cols as usize;
 
         Self {
             rows,
@@ -20,9 +20,9 @@ impl Grid {
     }
 
     // Construct Grid with randomized buffer
-    pub fn new_random(size: (u16, u16), spawn_probability: f64, seed: u64) -> Self {
-        let rows = size.1 as usize;
-        let cols = size.0 as usize;
+    pub fn new_random(rows: u16, cols: u16, spawn_probability: f64, seed: u64) -> Self {
+        let rows = rows as usize;
+        let cols = cols as usize;
 
         let mut rng: StdRng = rand::SeedableRng::seed_from_u64(seed);
 

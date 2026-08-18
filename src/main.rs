@@ -37,16 +37,11 @@ fn main() -> io::Result<()> {
         std::process::exit(1);
     });
 
-    // Arguments
-    let seed = args.seed;
-    let rulestring = args.rulestring;
-    let game_speed = args.speed;
-    let spawn_probability = args.spawn;
-    let frame_duration = std::time::Duration::from_secs_f64(1.0 / game_speed);
+    let frame_duration = std::time::Duration::from_secs_f64(1.0 / args.speed);
 
-    let size: (u16, u16) = terminal::size().expect("Error in fetching terminal size.");
-    let grid = Grid::new_random((size.0, size.1), spawn_probability, seed);
-    let mut game = Game::new(grid, rulestring);
+    let (cols, rows) = terminal::size().expect("Error in fetching terminal size.");
+    let grid = Grid::new_random(rows, cols, args.spawn, args.seed);
+    let mut game = Game::new(grid, args.rulestring);
 
     terminal::enable_raw_mode()?;
     execute!(io::stdout(), terminal::EnterAlternateScreen, cursor::Hide)?;
