@@ -18,14 +18,11 @@ impl Grid {
         }
     }
 
-    pub fn new_random(size: (u16, u16), spawn_probability: f64, seed: Option<u64>) -> Self {
+    pub fn new_random(size: (u16, u16), spawn_probability: f64, seed: u64) -> Self {
         let rows = size.1 as usize;
         let cols = size.0 as usize;
 
-        let mut rng: StdRng = match seed {
-            Some(seed) => rand::SeedableRng::seed_from_u64(seed),
-            None => rand::make_rng(),
-        };
+        let mut rng: StdRng = rand::SeedableRng::seed_from_u64(seed);
 
         Self {
             rows,

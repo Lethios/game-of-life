@@ -7,49 +7,14 @@ pub struct Game {
 }
 
 impl Game {
-    pub fn new(grid: Grid, rulestring: Option<&str>) -> Option<Self> {
-        let rule = match rulestring {
-            Some(rule) => rule,
-            None => "B3/S23",
-        };
+    pub fn new(grid: Grid, rulestring: ([bool; 9], [bool; 9])) -> Self {
+        let (birth, survival) = rulestring;
 
-        let (birth, survival) = Self::parse_rulestring(rule)?;
-
-        Some(Self {
+        Self {
             grid,
             birth,
             survival,
-        })
-    }
-
-    fn parse_rulestring(rulestring: &str) -> Option<([bool; 9], [bool; 9])> {
-        let mut birth_rules = [false; 9];
-        let mut survival_rules = [false; 9];
-
-        let parts: Vec<&str> = rulestring.split("/").collect();
-
-        let birth = parts.get(0)?.strip_prefix("B")?;
-        let survival = parts.get(1)?.strip_prefix("S")?;
-
-        for b in birth.chars() {
-            let num = b.to_digit(10)?;
-            if num > 8 {
-                return None;
-            }
-
-            birth_rules[num as usize] = true;
         }
-
-        for s in survival.chars() {
-            let num = s.to_digit(10)?;
-            if num > 8 {
-                return None;
-            }
-
-            survival_rules[num as usize] = true;
-        }
-
-        Some((birth_rules, survival_rules))
     }
 
     pub fn grid(&self) -> &Grid {

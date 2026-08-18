@@ -1,20 +1,20 @@
-struct Args {
-    seed: Option<u64>,
-    rulestring: Option<([bool; 9], [bool; 9])>,
-    speed: Option<f64>,
-    spawn: Option<f64>,
+pub struct Args {
+    pub seed: u64,
+    pub rulestring: ([bool; 9], [bool; 9]),
+    pub speed: f64,
+    pub spawn: f64,
 }
 
-fn parse_args() -> Result<Args, String> {
+pub fn parse_args() -> Result<Args, String> {
     let mut args = std::env::args().skip(1);
     let mut parsed_args = Args {
-        seed: Some(rand::random::<u64>()),
-        rulestring: Some((
+        seed: rand::random::<u64>(),
+        rulestring: (
             [false, false, false, true, false, false, false, false, false],
             [false, false, true, true, false, false, false, false, false],
-        )),
-        speed: Some(15.0),
-        spawn: Some(0.5),
+        ),
+        speed: 15.0,
+        spawn: 0.5,
     };
 
     while let Some(flag) = args.next() {
@@ -23,10 +23,10 @@ fn parse_args() -> Result<Args, String> {
             .ok_or_else(|| format!("'{flag}' requires a value"))?;
 
         match flag.as_str() {
-            "--seed" => parsed_args.seed = Some(validate_seed(&value)?),
-            "--rulestring" => parsed_args.rulestring = Some(validate_rulestring(&value)?),
-            "--speed" => parsed_args.speed = Some(validate_speed(&value)?),
-            "--spawn" => parsed_args.spawn = Some(validate_spawn(&value)?),
+            "--seed" => parsed_args.seed = validate_seed(&value)?,
+            "--rulestring" => parsed_args.rulestring = validate_rulestring(&value)?,
+            "--speed" => parsed_args.speed = validate_speed(&value)?,
+            "--spawn" => parsed_args.spawn = validate_spawn(&value)?,
             _ => return Err(format!("Invalid flag: {value}")),
         }
     }

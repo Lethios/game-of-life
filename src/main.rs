@@ -1,9 +1,11 @@
 use crossterm::{cursor, event, execute, style, terminal};
 use std::io;
 
+mod args;
 mod game;
 mod grid;
 
+use crate::args::{Args, parse_args};
 use crate::game::Game;
 use crate::grid::Grid;
 
@@ -28,13 +30,20 @@ fn render(game: &Game) -> io::Result<()> {
 }
 
 fn main() -> io::Result<()> {
-    let size: (u16, u16) = terminal::size().expect("Error in fetching terminal size.");
+    let args = parse_args().unwrap_or_else(|e| {
+        eprintln!("Error: {e}");
+        std::process::exit(1);
+    });
 
-    let grid = Grid::new_random((size.0, size.1), 0.5, Some(0));
-    let mut game = Game::new(grid, None).ok_or("err").expect("err");
-
-    let game_speed = 15.0;
+    let seed = args.seed;
+    let rulestring = args.rulestring;
+    let game_speed = args.speed;
+    let spawn_probability = args.spawn;
     let frame_duration = std::time::Duration::from_secs_f64(1.0 / game_speed);
+
+    let size: (u16, u16) = terminal::size().expect("Error in fetching terminal size.");
+    let grid = Grid::new_random((size.0, size.1), spawn_probability, seed);
+    let mut game = Game::new(grid, rulestring);
 
     terminal::enable_raw_mode()?;
     execute!(io::stdout(), terminal::EnterAlternateScreen, cursor::Hide)?;
