@@ -7,6 +7,7 @@ pub struct Game {
 }
 
 impl Game {
+    // Initialize new Game
     pub fn new(grid: Grid, rulestring: ([bool; 9], [bool; 9])) -> Self {
         let (birth, survival) = rulestring;
 
@@ -51,6 +52,7 @@ impl Game {
         false
     }
 
+    // Advance Game to next generation
     pub fn tick(&mut self) {
         let rows = self.grid.rows();
         let cols = self.grid.cols();

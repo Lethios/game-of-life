@@ -5,10 +5,11 @@ mod args;
 mod game;
 mod grid;
 
-use crate::args::{Args, parse_args};
+use crate::args::parse_args;
 use crate::game::Game;
 use crate::grid::Grid;
 
+// Display to terminal
 fn render(game: &Game) -> io::Result<()> {
     let rows = game.grid().rows();
     let cols = game.grid().cols();
@@ -30,11 +31,13 @@ fn render(game: &Game) -> io::Result<()> {
 }
 
 fn main() -> io::Result<()> {
+    // Parse arguments from command line
     let args = parse_args().unwrap_or_else(|e| {
         eprintln!("Error: {e}");
         std::process::exit(1);
     });
 
+    // Arguments
     let seed = args.seed;
     let rulestring = args.rulestring;
     let game_speed = args.speed;
@@ -54,6 +57,7 @@ fn main() -> io::Result<()> {
         render(&game)?;
         game.tick();
 
+        // Exit if q or Esc pressed
         if event::poll(std::time::Duration::ZERO)? {
             if let event::Event::Key(k) = event::read()? {
                 if k.kind == event::KeyEventKind::Press
@@ -64,11 +68,13 @@ fn main() -> io::Result<()> {
             }
         }
 
+        // Cap frame rate by sleeping for the remaining time in the frame
         let elapsed = frame_start.elapsed();
         if elapsed < frame_duration {
             std::thread::sleep(frame_duration - elapsed);
         }
     }
+
     execute!(io::stdout(), terminal::LeaveAlternateScreen, cursor::Show)?;
     terminal::disable_raw_mode()?;
 

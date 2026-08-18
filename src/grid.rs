@@ -7,6 +7,7 @@ pub struct Grid {
 }
 
 impl Grid {
+    // Construct Grid with empty buffer
     pub fn new(size: (u16, u16)) -> Self {
         let rows = size.1 as usize;
         let cols = size.0 as usize;
@@ -18,6 +19,7 @@ impl Grid {
         }
     }
 
+    // Construct Grid with randomized buffer
     pub fn new_random(size: (u16, u16), spawn_probability: f64, seed: u64) -> Self {
         let rows = size.1 as usize;
         let cols = size.0 as usize;
