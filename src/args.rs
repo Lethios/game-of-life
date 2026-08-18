@@ -47,15 +47,15 @@ fn parse_rulestring(rulestring: &str) -> Result<([bool; 9], [bool; 9]), String> 
     let parts: Vec<&str> = rulestring.split("/").collect();
 
     let birth = parts
-        .get(0)
-        .ok_or_else(|| format!("Invalid rulestring: expected format B<digits>/S<digits>"))?
+        .first()
+        .ok_or_else(|| "Invalid rulestring: expected format B<digits>/S<digits>".to_string())?
         .strip_prefix("B")
-        .ok_or_else(|| format!("Invalid rulestring: birth rule must start with 'B'"))?;
+        .ok_or_else(|| "Invalid rulestring: birth rule must start with 'B'".to_string())?;
     let survival = parts
         .get(1)
-        .ok_or_else(|| format!("Invalid rulestring: expected format B<digits>/S<digits>"))?
+        .ok_or_else(|| "Invalid rulestring: expected format B<digits>/S<digits>".to_string())?
         .strip_prefix("S")
-        .ok_or_else(|| format!("Invalid rulestring: survival rule must start with 'S'"))?;
+        .ok_or_else(|| "Invalid rulestring: survival rule must start with 'S'".to_string())?;
 
     for b in birth.chars() {
         let num = b

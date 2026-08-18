@@ -61,7 +61,7 @@ impl Game {
 
         for row in 0..rows {
             for col in 0..cols {
-                if Self::next_cell_state(&self, row, col) {
+                if Self::next_cell_state(self, row, col) {
                     next_grid.set_cell_state(row, col, '█');
                 } else {
                     next_grid.set_cell_state(row, col, ' ');

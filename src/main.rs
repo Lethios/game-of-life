@@ -58,14 +58,12 @@ fn main() -> io::Result<()> {
         game.tick();
 
         // Exit if q or Esc pressed
-        if event::poll(std::time::Duration::ZERO)? {
-            if let event::Event::Key(k) = event::read()? {
-                if k.kind == event::KeyEventKind::Press
-                    && matches!(k.code, event::KeyCode::Char('q') | event::KeyCode::Esc)
-                {
-                    break;
-                }
-            }
+        if event::poll(std::time::Duration::ZERO)?
+            && let event::Event::Key(k) = event::read()?
+            && k.kind == event::KeyEventKind::Press
+            && matches!(k.code, event::KeyCode::Char('q') | event::KeyCode::Esc)
+        {
+            break;
         }
 
         // Cap frame rate by sleeping for the remaining time in the frame
