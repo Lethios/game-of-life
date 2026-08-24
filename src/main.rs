@@ -1,4 +1,3 @@
-use crossterm::event::KeyCode;
 use crossterm::{cursor, event, execute, style, terminal};
 use std::io;
 
@@ -66,10 +65,11 @@ fn draw(rows: u16, cols: u16) -> io::Result<()> {
     execute!(
         io::stdout(),
         cursor::MoveTo(cols / 2, rows / 2),
-        cursor::SetCursorStyle::BlinkingUnderScore,
+        cursor::SetCursorStyle::BlinkingBlock,
         cursor::Show
     )?;
 
+    let mut cursor_shown = false;
     let mut draw_mode = false;
 
     loop {
@@ -80,15 +80,27 @@ fn draw(rows: u16, cols: u16) -> io::Result<()> {
             ) {
                 match k.code {
                     event::KeyCode::Char('p') => {
-                        // temp
+                        break Ok(());
                     }
-                    event::KeyCode::Char(' ') => {
-                        draw_mode = !draw_mode;
+                    event::KeyCode::Char('h') => {
+                        cursor_shown = !cursor_shown;
 
-                        if draw_mode {
-                            // temp
+                        if cursor_shown {
+                            execute!(
+                                io::stdout(),
+                                cursor::Show,
+                                cursor::SetCursorStyle::BlinkingBlock
+                            )?
+                        } else {
+                            execute!(
+                                io::stdout(),
+                                cursor::Hide,
+                                cursor::SetCursorStyle::DefaultUserShape
+                            )?
                         }
                     }
+                    event::KeyCode::Char(' ') => {}
+
                     event::KeyCode::Char('w') | event::KeyCode::Up => {
                         execute!(io::stdout(), cursor::MoveUp(1))?
                     }
@@ -102,6 +114,7 @@ fn draw(rows: u16, cols: u16) -> io::Result<()> {
                         execute!(io::stdout(), cursor::MoveRight(1))?
                     }
                     event::KeyCode::Char('q') | event::KeyCode::Esc => quit()?,
+
                     _ => {}
                 }
             }
@@ -154,7 +167,12 @@ fn main() -> io::Result<()> {
         }
     }
 
-    execute!(io::stdout(), terminal::LeaveAlternateScreen, cursor::Show)?;
+    execute!(
+        io::stdout(),
+        terminal::LeaveAlternateScreen,
+        cursor::Show,
+        cursor::SetCursorStyle::DefaultUserShape
+    )?;
     terminal::disable_raw_mode()?;
 
     Ok(())
