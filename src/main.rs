@@ -42,15 +42,43 @@ fn main() -> io::Result<()> {
     let (cols, rows) = terminal::size().expect("Error in fetching terminal size.");
     let grid = Grid::new_random(rows, cols, args.spawn, args.seed);
     let mut game = Game::new(grid, args.rulestring);
+    let mut is_paused = false;
 
     terminal::enable_raw_mode()?;
     execute!(io::stdout(), terminal::EnterAlternateScreen, cursor::Hide)?;
 
-    loop {
+    'outer: loop {
         let frame_start = std::time::Instant::now();
 
         render(&game)?;
         game.tick();
+
+        // Check if p is pressed
+        if event::poll(std::time::Duration::ZERO)?
+            && let event::Event::Key(k) = event::read()?
+            && k.kind == event::KeyEventKind::Press
+            && matches!(k.code, event::KeyCode::Char('p'))
+        {
+            is_paused = true;
+        }
+
+        // Pause game until p is pressed again
+        if is_paused {
+            loop {
+                if let event::Event::Key(k) = event::read()?
+                    && k.kind == event::KeyEventKind::Press
+                {
+                    if matches!(k.code, event::KeyCode::Char('p')) {
+                        is_paused = false;
+                        break;
+                    }
+
+                    if matches!(k.code, event::KeyCode::Char('q') | event::KeyCode::Esc) {
+                        break 'outer;
+                    }
+                }
+            }
+        }
 
         // Exit if q or Esc pressed
         if event::poll(std::time::Duration::ZERO)?
